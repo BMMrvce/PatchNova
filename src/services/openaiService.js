@@ -192,18 +192,12 @@ Return ONLY this JSON structure (no markdown, no code blocks):
       let responseContent = response.choices[0].message.content.trim();
       console.log('🔍 Raw AI Response:', responseContent);
       
-      // Remove markdown code blocks if present (enhanced cleaning)
-      if (responseContent.includes('```json')) {
-        responseContent = responseContent.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-      } else if (responseContent.includes('```')) {
-        responseContent = responseContent.replace(/```\s*/g, '');
+      // Remove markdown code blocks if present
+      if (responseContent.startsWith('```json')) {
+        responseContent = responseContent.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+      } else if (responseContent.startsWith('```')) {
+        responseContent = responseContent.replace(/^```\s*/, '').replace(/```\s*$/, '');
       }
-      
-      // Additional cleaning for common AI response patterns
-      responseContent = responseContent
-        .replace(/^[^{]*({[\s\S]*})[^}]*$/, '$1') // Extract JSON object
-        .replace(/\n\s*\n/g, '\n') // Remove extra newlines
-        .trim();
       
       // Try to parse JSON
       let analysisResult;

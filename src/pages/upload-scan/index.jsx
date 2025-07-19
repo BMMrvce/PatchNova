@@ -7,7 +7,6 @@ import FileUploadZone from './components/FileUploadZone';
 import FileDetails from './components/FileDetails';
 import ProcessingStatus from './components/ProcessingStatus';
 import SampleDownload from './components/SampleDownload';
-import OpenAITest from './components/OpenAITest';
 import ErrorDisplay from './components/ErrorDisplay';
 import Icon from '../../components/AppIcon';
 import fileUploadService from '../../utils/fileUploadService';
@@ -513,12 +512,7 @@ const UploadScan = () => {
             )}
             
             {(uploadState === 'idle' || uploadState === 'error') && (
-              <>
-                <SampleDownload />
-                <div className="mt-6">
-                  <OpenAITest />
-                </div>
-              </>
+              <SampleDownload />
             )}
           </div>
 
