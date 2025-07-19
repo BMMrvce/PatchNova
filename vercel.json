@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "patchnova",
   "builds": [
     {
       "src": "package.json",
@@ -12,8 +11,7 @@
   ],
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
