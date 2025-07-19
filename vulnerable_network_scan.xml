@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sV -sC -O -A 192.168.1.0/24" start="1720676000" version="7.94" xmloutputversion="1.05">
+  <scaninfo type="syn" protocol="tcp" numservices="1000" services="1-65535"/>
+  
+  <!-- Host 1: Web Server with Multiple Vulnerabilities -->
+  <host starttime="1720676000" endtime="1720676120">
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.1.101" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="webserver.example.com" type="PTR"/>
+    </hostnames>
+    <ports>
+      <!-- SSH with vulnerable version -->
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="7.4" extrainfo="protocol 2.0" method="probed" conf="10"/>
+      </port>
+      
+      <!-- HTTP with outdated Apache -->
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Apache httpd" version="2.4.41" extrainfo="(Ubuntu)" method="probed" conf="10"/>
+      </port>
+      
+      <!-- HTTPS with weak SSL -->
+      <port protocol="tcp" portid="443">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="https" product="Apache httpd" version="2.4.41" extrainfo="(Ubuntu) OpenSSL/1.1.1f" method="probed" conf="10"/>
+      </port>
+      
+      <!-- FTP with anonymous access -->
+      <port protocol="tcp" portid="21">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ftp" product="vsftpd" version="3.0.3" extrainfo="anonymous access allowed" method="probed" conf="10"/>
+      </port>
+      
+      <!-- MySQL with default credentials -->
+      <port protocol="tcp" portid="3306">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="mysql" product="MySQL" version="5.7.29" extrainfo="MySQL Community Server" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Nginx reverse proxy -->
+      <port protocol="tcp" portid="8080">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http-proxy" product="nginx" version="1.18.0" extrainfo="(Ubuntu)" method="probed" conf="10"/>
+      </port>
+      
+      <!-- SMB with vulnerable version -->
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="microsoft-ds" product="Samba smbd" version="4.7.6" extrainfo="Ubuntu" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Telnet (unencrypted) -->
+      <port protocol="tcp" portid="23">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="telnet" product="Linux telnetd" version="" extrainfo="" method="probed" conf="8"/>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="22"/>
+      <osmatch name="Linux 4.15 - 5.6" accuracy="95">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="4.X|5.X" accuracy="95"/>
+      </osmatch>
+    </os>
+  </host>
+  
+  <!-- Host 2: Database Server -->
+  <host starttime="1720676120" endtime="1720676180">
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.1.102" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="database.example.com" type="PTR"/>
+    </hostnames>
+    <ports>
+      <!-- SSH -->
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="8.0" extrainfo="protocol 2.0" method="probed" conf="10"/>
+      </port>
+      
+      <!-- PostgreSQL with weak authentication -->
+      <port protocol="tcp" portid="5432">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="postgresql" product="PostgreSQL DB" version="9.6.24" extrainfo="" method="probed" conf="10"/>
+      </port>
+      
+      <!-- MongoDB without authentication -->
+      <port protocol="tcp" portid="27017">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="mongodb" product="MongoDB" version="3.6.8" extrainfo="no authentication required" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Redis without password -->
+      <port protocol="tcp" portid="6379">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="redis" product="Redis key-value store" version="5.0.7" extrainfo="no authentication" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Elasticsearch open to internet -->
+      <port protocol="tcp" portid="9200">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Elasticsearch REST API" version="6.8.6" extrainfo="no authentication" method="probed" conf="10"/>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="22"/>
+      <osmatch name="Linux 4.15 - 5.8" accuracy="92">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="4.X|5.X" accuracy="92"/>
+      </osmatch>
+    </os>
+  </host>
+  
+  <!-- Host 3: Application Server -->
+  <host starttime="1720676180" endtime="1720676240">
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.1.103" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="appserver.example.com" type="PTR"/>
+    </hostnames>
+    <ports>
+      <!-- SSH with weak key exchange -->
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="6.6.1" extrainfo="protocol 2.0" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Apache Tomcat with default credentials -->
+      <port protocol="tcp" portid="8080">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Apache Tomcat" version="8.5.31" extrainfo="default credentials" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Jenkins with no authentication -->
+      <port protocol="tcp" portid="8081">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Jenkins" version="2.190.1" extrainfo="no authentication configured" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Docker API exposed -->
+      <port protocol="tcp" portid="2376">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="docker" product="Docker Engine API" version="19.03.12" extrainfo="no TLS" method="probed" conf="10"/>
+      </port>
+      
+      <!-- RDP with weak encryption -->
+      <port protocol="tcp" portid="3389">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ms-wbt-server" product="Microsoft Terminal Services" version="" extrainfo="weak encryption" method="probed" conf="8"/>
+      </port>
+      
+      <!-- SNMP with default community -->
+      <port protocol="udp" portid="161">
+        <state state="open" reason="udp-response" reason_ttl="64"/>
+        <service name="snmp" product="Net-SNMP" version="5.8" extrainfo="default community string" method="probed" conf="10"/>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="22"/>
+      <osmatch name="Linux 3.2 - 4.9" accuracy="88">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="3.X|4.X" accuracy="88"/>
+      </osmatch>
+    </os>
+  </host>
+  
+  <!-- Host 4: IoT Device -->
+  <host starttime="1720676240" endtime="1720676280">
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.1.104" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="iot-device.example.com" type="PTR"/>
+    </hostnames>
+    <ports>
+      <!-- Telnet with default credentials -->
+      <port protocol="tcp" portid="23">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="telnet" product="BusyBox telnetd" version="1.30.1" extrainfo="default credentials admin:admin" method="probed" conf="10"/>
+      </port>
+      
+      <!-- HTTP admin interface -->
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="lighttpd" version="1.4.45" extrainfo="admin interface, no CSRF protection" method="probed" conf="10"/>
+      </port>
+      
+      <!-- UPnP service -->
+      <port protocol="tcp" portid="1900">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="upnp" product="MiniUPnPd" version="1.8" extrainfo="vulnerable to amplification attacks" method="probed" conf="10"/>
+      </port>
+      
+      <!-- Weak WPS implementation -->
+      <port protocol="tcp" portid="49152">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="unknown" product="IoT management service" version="1.0" extrainfo="weak WPS PIN" method="probed" conf="6"/>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="23"/>
+      <osmatch name="Linux 2.6.32 - 3.10" accuracy="85">
+        <osclass type="embedded" vendor="Linux" osfamily="Linux" osgen="2.6.X|3.X" accuracy="85"/>
+      </osmatch>
+    </os>
+  </host>
+  
+  <!-- Host 5: Legacy Windows Server -->
+  <host starttime="1720676280" endtime="1720676340">
+    <status state="up" reason="echo-reply" reason_ttl="128"/>
+    <address addr="192.168.1.105" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="legacy-server.example.com" type="PTR"/>
+    </hostnames>
+    <ports>
+      <!-- SMB v1 enabled -->
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="microsoft-ds" product="Microsoft Windows netbios-ssn" version="" extrainfo="SMBv1 enabled, vulnerable to EternalBlue" method="probed" conf="10"/>
+      </port>
+      
+      <!-- RDP with NLA disabled -->
+      <port protocol="tcp" portid="3389">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="ms-wbt-server" product="Microsoft Terminal Services" version="" extrainfo="NLA disabled, BlueKeep vulnerable" method="probed" conf="10"/>
+      </port>
+      
+      <!-- IIS with outdated version -->
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Microsoft IIS httpd" version="7.5" extrainfo="Windows Server 2008 R2" method="probed" conf="10"/>
+      </port>
+      
+      <!-- MS SQL Server with weak SA password -->
+      <port protocol="tcp" portid="1433">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="ms-sql-s" product="Microsoft SQL Server" version="2008 R2" extrainfo="weak SA password" method="probed" conf="10"/>
+      </port>
+      
+      <!-- NetBIOS name service -->
+      <port protocol="tcp" portid="139">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="netbios-ssn" product="Microsoft Windows netbios-ssn" version="" extrainfo="" method="probed" conf="10"/>
+      </port>
+      
+      <!-- WinRM with basic auth -->
+      <port protocol="tcp" portid="5985">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Microsoft HTTPAPI httpd" version="2.0" extrainfo="WinRM, basic authentication" method="probed" conf="10"/>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="445"/>
+      <osmatch name="Microsoft Windows Server 2008 R2" accuracy="98">
+        <osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2008" accuracy="98"/>
+      </osmatch>
+    </os>
+  </host>
+  
+  <runstats>
+    <finished time="1720676340" elapsed="340.00" summary="Nmap done: 5 IP addresses (5 hosts up) scanned in 340.00 seconds" exit="success"/>
+  </runstats>
+</nmaprun>
