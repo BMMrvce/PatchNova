@@ -1,6 +1,6 @@
-# React
+# PatchNova
 
-A modern React-based project utilizing the latest frontend technologies and tools for building responsive web applications.
+A modern React-based vulnerability assessment and patch management application.
 
 ## 🚀 Features
 
