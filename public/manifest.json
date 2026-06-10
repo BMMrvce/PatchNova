@@ -1,0 +1,15 @@
+{
+  "short_name": "PatchNova",
+  "name": "PatchNova",
+  "icons": [
+    {
+      "src": "https://drive.google.com/file/d/1ZBy-b7Rc5yeKDzfC8RpxzSlNwPygGRVj/view?usp=drive_link",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
