@@ -163,7 +163,7 @@ Return ONLY this JSON structure (no markdown, no code blocks):
 
       const requestData = {
         model: MODEL,
-        max_tokens: 2000,
+        max_tokens: 8000,
         messages: [{ role: 'user', content: userPrompt }]
       };
 
@@ -218,7 +218,7 @@ Return ONLY this JSON structure (no markdown, no code blocks):
 
       this.trackFailedApiCall('analyzeXMLFile', {
         model: MODEL,
-        max_tokens: 2000,
+        max_tokens: 8000,
         messages: [{ content: `XML content (${xmlContent.length} chars)` }]
       }, error, duration);
 
@@ -264,7 +264,7 @@ Return ONLY this JSON structure (no markdown, no code blocks):
 
       const requestData = {
         model: MODEL,
-        max_tokens: 1500,
+        max_tokens: 4000,
         messages: [{ role: 'user', content: userPrompt }]
       };
 
