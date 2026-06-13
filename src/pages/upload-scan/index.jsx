@@ -11,7 +11,7 @@ import OpenAITest from './components/OpenAITest';
 import ErrorDisplay from './components/ErrorDisplay';
 import Icon from '../../components/AppIcon';
 import fileUploadService from '../../utils/fileUploadService';
-import openaiService from '../../services/openaiService';
+import claudeService from '../../services/claudeService';
 
 const UploadScan = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const UploadScan = () => {
         setIsTestingConnection(true);
         try {
           console.log('🔍 Testing OpenAI API connection...');
-          const connectionTest = await openaiService.testConnection();
+          const connectionTest = await claudeService.testConnection();
           
           if (connectionTest.success) {
             console.log('✅ OpenAI API connection successful');
@@ -46,7 +46,7 @@ const UploadScan = () => {
           }
           
           // Get initial API stats
-          setApiStats(openaiService.getApiStats());
+          setApiStats(claudeService.getApiStats());
           
         } catch (error) {
           console.error('❌ Connection test error:', error);
@@ -156,7 +156,7 @@ const UploadScan = () => {
       setProcessingProgress(30);
       
       console.log('🤖 Starting AI analysis...');
-      const analysisResult = await openaiService.analyzeXMLFile(fileContent);
+      const analysisResult = await claudeService.analyzeXMLFile(fileContent);
       console.log('✅ AI analysis completed:', analysisResult);
 
       // Set live data so ProcessingStatus can show real values
@@ -171,14 +171,14 @@ const UploadScan = () => {
       }]);
 
       // Update API stats after analysis
-      setApiStats(openaiService.getApiStats());
+      setApiStats(claudeService.getApiStats());
       
       // Step 3: Generating AI recommendations
       setProcessingStep(3);
       setProcessingProgress(70);
       
       console.log('💡 Generating recommendations...');
-      const recommendations = await openaiService.generateRecommendations(analysisResult.vulnerabilities);
+      const recommendations = await claudeService.generateRecommendations(analysisResult.vulnerabilities);
       console.log('✅ Recommendations generated:', recommendations);
       
       // Add debug info
@@ -190,7 +190,7 @@ const UploadScan = () => {
       }]);
       
       // Update API stats after recommendations
-      setApiStats(openaiService.getApiStats());
+      setApiStats(claudeService.getApiStats());
       
       // Step 4: Finalizing report
       setProcessingStep(4);
@@ -201,7 +201,7 @@ const UploadScan = () => {
         recommendations: recommendations,
         scanDuration: Date.now() - Date.now(),
         timestamp: new Date().toISOString(),
-        apiStats: openaiService.getApiStats() // Include API stats in final data
+        apiStats: claudeService.getApiStats() // Include API stats in final data
       };
 
       console.log('📊 Final scan data:', finalData);
@@ -234,13 +234,13 @@ const UploadScan = () => {
       }]);
       
       // Update API stats even on error
-      setApiStats(openaiService.getApiStats());
+      setApiStats(claudeService.getApiStats());
       
       // Provide more detailed error information
       let errorMessage = `Analysis failed: ${error.message}`;
       
-      if (error.message.includes('API key')) {
-        errorMessage = 'OpenAI API key is missing or invalid. Please check your environment configuration.';
+      if (error.message.includes('API key') || error.message.includes('api_key')) {
+        errorMessage = 'Anthropic API key is missing or invalid. Please check your environment configuration.';
       } else if (error.message.includes('rate limit')) {
         errorMessage = 'API rate limit exceeded. Please wait a moment and try again.';
       } else if (error.message.includes('network')) {
@@ -406,8 +406,8 @@ const UploadScan = () => {
                       onClick={async () => {
                         setIsTestingConnection(true);
                         try {
-                          const testResult = await openaiService.testConnection();
-                          setApiStats(openaiService.getApiStats());
+                          const testResult = await claudeService.testConnection();
+                          setApiStats(claudeService.getApiStats());
                           setDebugInfo(prev => [...prev, {
                             step: 'Connection Test',
                             timestamp: new Date().toISOString(),

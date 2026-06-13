@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
-import openaiService from '../../../services/openaiService';
+import claudeService from '../../../services/claudeService';
 
 const OpenAITest = () => {
   const [isTestingAPI, setIsTestingAPI] = useState(false);
@@ -16,7 +16,7 @@ const OpenAITest = () => {
       console.log('🧪 Testing OpenAI API...');
       
       // Test connection first
-      const connectionTest = await openaiService.testConnection();
+      const connectionTest = await claudeService.testConnection();
       
       if (!connectionTest.success) {
         setTestResult({
@@ -47,13 +47,13 @@ const OpenAITest = () => {
 </nmaprun>`;
 
       console.log('🔍 Testing vulnerability analysis...');
-      const analysisResult = await openaiService.analyzeXMLFile(sampleXML);
+      const analysisResult = await claudeService.analyzeXMLFile(sampleXML);
       
       setTestResult({
         success: true,
         data: analysisResult,
         type: 'analysis',
-        apiStats: openaiService.getApiStats()
+        apiStats: claudeService.getApiStats()
       });
       
     } catch (error) {

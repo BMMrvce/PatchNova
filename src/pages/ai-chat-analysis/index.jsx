@@ -10,7 +10,7 @@ import ChatHeader from './components/ChatHeader';
 import EmptyState from './components/EmptyState';
 import ScrollToTop from '../../components/ScrollToTop';
 import fileUploadService from '../../utils/fileUploadService';
-import openaiService from '../../services/openaiService';
+import claudeService from '../../services/claudeService';;
 
 const AIChatAnalysis = () => {
   const navigate = useNavigate();
@@ -106,18 +106,20 @@ const AIChatAnalysis = () => {
     }]);
 
     try {
-      const stream = await openaiService.streamChatAnalysis(historyForApi, scanContext);
+      const stream = await claudeService.streamChatAnalysis(historyForApi, scanContext);
 
       let fullContent = '';
-      for await (const chunk of stream) {
-        const delta = chunk.choices[0]?.delta?.content ?? '';
-        if (delta) {
-          fullContent += delta;
-          setMessages(prev =>
-            prev.map(msg =>
-              msg.id === aiMessageId ? { ...msg, content: fullContent } : msg
-            )
-          );
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          const delta = event.delta.text;
+          if (delta) {
+            fullContent += delta;
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === aiMessageId ? { ...msg, content: fullContent } : msg
+              )
+            );
+          }
         }
       }
 
@@ -129,8 +131,8 @@ const AIChatAnalysis = () => {
       );
     } catch (err) {
       console.error('AI chat error:', err);
-      const errorText = err.message?.includes('API key')
-        ? 'OpenAI API key is missing or invalid. Please check your environment configuration.'
+      const errorText = err.message?.includes('API key') || err.message?.includes('api_key')
+        ? 'Anthropic API key is missing or invalid. Please check your environment configuration.'
         : err.message?.includes('rate limit')
           ? 'API rate limit reached. Please wait a moment and try again.'
           : `Error: ${err.message}`;

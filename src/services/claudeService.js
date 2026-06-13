@@ -1,47 +1,41 @@
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 
-class OpenAIService {
+const MODEL = import.meta.env.VITE_CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
+
+class ClaudeService {
   constructor() {
-    // Initialize OpenAI client
-    this.client = new OpenAI({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true // Required for client-side usage
+    this.client = new Anthropic({
+      apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
+      dangerouslyAllowBrowser: true
     });
-    
-    // Track API calls for monitoring
+
     this.apiCallCount = 0;
     this.apiCallHistory = [];
     this.isConnected = false;
   }
 
-  // Test API connection
   async testConnection() {
     try {
-      console.log('🔍 Testing OpenAI API connection...');
-      
-      const response = await this.client.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "user",
-            content: "Test connection. Respond with 'API working'"
-          }
-        ],
+      console.log('🔍 Testing Claude API connection...');
+
+      const response = await this.client.messages.create({
+        model: MODEL,
+        system: 'You are a helpful assistant.',
+        messages: [{ role: 'user', content: "Test connection. Respond with 'API working'" }],
         max_tokens: 50
       });
 
       this.isConnected = true;
-      console.log('✅ OpenAI API connection successful');
-      return { success: true, response: response.choices[0].message.content };
-      
+      console.log('✅ Claude API connection successful');
+      return { success: true, response: response.content[0].text };
+
     } catch (error) {
       this.isConnected = false;
-      console.error('❌ OpenAI API connection failed:', error);
+      console.error('❌ Claude API connection failed:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // Track API call with detailed logging
   trackApiCall(endpoint, requestData, responseData, duration) {
     this.apiCallCount++;
     const callInfo = {
@@ -51,21 +45,20 @@ class OpenAIService {
       requestData: {
         model: requestData.model,
         tokensRequested: requestData.max_tokens,
-        promptLength: requestData.messages?.reduce((acc, msg) => acc + msg.content.length, 0) || 0
+        promptLength: requestData.messages?.reduce((acc, msg) => acc + (typeof msg.content === 'string' ? msg.content.length : 0), 0) || 0
       },
       responseData: {
-        tokensUsed: responseData.usage?.total_tokens || 0,
-        promptTokens: responseData.usage?.prompt_tokens || 0,
-        completionTokens: responseData.usage?.completion_tokens || 0,
-        responseLength: responseData.choices?.[0]?.message?.content?.length || 0
+        tokensUsed: (responseData.usage?.input_tokens || 0) + (responseData.usage?.output_tokens || 0),
+        promptTokens: responseData.usage?.input_tokens || 0,
+        completionTokens: responseData.usage?.output_tokens || 0,
+        responseLength: responseData.content?.[0]?.text?.length || 0
       },
       duration,
       success: true
     };
 
     this.apiCallHistory.push(callInfo);
-    
-    // Log to console for debugging
+
     console.log('📊 API Call Tracked:', {
       callNumber: callInfo.id,
       endpoint: callInfo.endpoint,
@@ -78,7 +71,6 @@ class OpenAIService {
     return callInfo;
   }
 
-  // Track failed API call
   trackFailedApiCall(endpoint, requestData, error, duration) {
     this.apiCallCount++;
     const callInfo = {
@@ -88,7 +80,7 @@ class OpenAIService {
       requestData: {
         model: requestData.model,
         tokensRequested: requestData.max_tokens,
-        promptLength: requestData.messages?.reduce((acc, msg) => acc + msg.content.length, 0) || 0
+        promptLength: requestData.messages?.reduce((acc, msg) => acc + (typeof msg.content === 'string' ? msg.content.length : 0), 0) || 0
       },
       error: error.message,
       duration,
@@ -96,7 +88,7 @@ class OpenAIService {
     };
 
     this.apiCallHistory.push(callInfo);
-    
+
     console.error('❌ API Call Failed:', {
       callNumber: callInfo.id,
       endpoint: callInfo.endpoint,
@@ -107,27 +99,19 @@ class OpenAIService {
     return callInfo;
   }
 
-  // Analyze XML file with comprehensive tracking
   async analyzeXMLFile(xmlContent) {
     const startTime = Date.now();
-    
+
     try {
       console.log('🔍 Starting XML analysis...');
       console.log('📄 XML Content Length:', xmlContent.length, 'characters');
-      
-      const requestData = {
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: `You are a cybersecurity expert specializing in Nmap scan analysis. 
-            Analyze the provided XML data and extract vulnerability information.
-            IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.
-            Do not wrap your response in \`\`\`json or any other markdown.`
-          },
-          {
-            role: "user",
-            content: `Analyze this Nmap XML scan data and provide a comprehensive vulnerability assessment based on the actual services and versions found.
+
+      const systemPrompt = `You are a cybersecurity expert specializing in Nmap scan analysis.
+Analyze the provided XML data and extract vulnerability information.
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.
+Do not wrap your response in \`\`\`json or any other markdown.`;
+
+      const userPrompt = `Analyze this Nmap XML scan data and provide a comprehensive vulnerability assessment based on the actual services and versions found.
 
 XML Data:
 ${xmlContent}
@@ -175,97 +159,87 @@ Return ONLY this JSON structure (no markdown, no code blocks):
     "scanDuration": "40 seconds",
     "targetRange": "Single host scan"
   }
-}`
-          }
-        ],
+}`;
+
+      const requestData = {
+        model: MODEL,
         max_tokens: 2000,
-        temperature: 0.3
+        messages: [{ role: 'user', content: userPrompt }]
       };
 
-      const response = await this.client.chat.completions.create(requestData);
+      const response = await this.client.messages.create({
+        ...requestData,
+        system: systemPrompt
+      });
+
       const duration = Date.now() - startTime;
-      
-      // Track successful API call
       this.trackApiCall('analyzeXMLFile', requestData, response, duration);
-      
-      // Clean the response content to extract JSON
-      let responseContent = response.choices[0].message.content.trim();
+
+      let responseContent = response.content[0].text.trim();
       console.log('🔍 Raw AI Response:', responseContent);
-      
-      // Remove markdown code blocks if present
+
       if (responseContent.startsWith('```json')) {
         responseContent = responseContent.replace(/^```json\s*/, '').replace(/```\s*$/, '');
       } else if (responseContent.startsWith('```')) {
         responseContent = responseContent.replace(/^```\s*/, '').replace(/```\s*$/, '');
       }
-      
-      // Try to parse JSON
+
       let analysisResult;
       try {
         analysisResult = JSON.parse(responseContent);
       } catch (parseError) {
         console.error('❌ JSON Parse Error:', parseError);
         console.error('🔍 Content to parse:', responseContent);
-        
-        // Try to extract JSON from the response using regex
+
         const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             analysisResult = JSON.parse(jsonMatch[0]);
             console.log('✅ Successfully extracted JSON using regex');
-          } catch (regexParseError) {
+          } catch {
             throw new Error(`Failed to parse AI response as JSON. Raw response: ${responseContent.substring(0, 200)}...`);
           }
         } else {
           throw new Error(`AI response does not contain valid JSON. Raw response: ${responseContent.substring(0, 200)}...`);
         }
       }
-      
+
       console.log('✅ XML Analysis completed successfully');
       console.log('📊 Analysis Summary:', {
         totalVulnerabilities: analysisResult.totalVulnerabilities,
         hostsScanned: analysisResult.hostsScanned,
         duration: `${duration}ms`
       });
-      
+
       return analysisResult;
-      
+
     } catch (error) {
       const duration = Date.now() - startTime;
-      
-      // Track failed API call
-      this.trackFailedApiCall('analyzeXMLFile', { 
-        model: "gpt-3.5-turbo", 
+
+      this.trackFailedApiCall('analyzeXMLFile', {
+        model: MODEL,
         max_tokens: 2000,
         messages: [{ content: `XML content (${xmlContent.length} chars)` }]
       }, error, duration);
-      
+
       console.error('❌ XML Analysis failed:', error);
       throw new Error(`XML analysis failed: ${error.message}`);
     }
   }
 
-  // Generate recommendations with tracking
   async generateRecommendations(vulnerabilities) {
     const startTime = Date.now();
-    
+
     try {
       console.log('💡 Generating AI recommendations...');
       console.log('🔍 Processing', vulnerabilities?.length || 0, 'vulnerabilities');
-      
-      const requestData = {
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: `You are a cybersecurity consultant providing actionable remediation recommendations.
-            Generate prioritized recommendations based on vulnerability data.
-            IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.
-            Do not wrap your response in \`\`\`json or any other markdown.`
-          },
-          {
-            role: "user",
-            content: `Based on these vulnerabilities, provide detailed remediation recommendations.
+
+      const systemPrompt = `You are a cybersecurity consultant providing actionable remediation recommendations.
+Generate prioritized recommendations based on vulnerability data.
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.
+Do not wrap your response in \`\`\`json or any other markdown.`;
+
+      const userPrompt = `Based on these vulnerabilities, provide detailed remediation recommendations.
 
 Vulnerabilities:
 ${JSON.stringify(vulnerabilities, null, 2)}
@@ -286,77 +260,72 @@ Return ONLY this JSON structure (no markdown, no code blocks):
   ],
   "summary": "string",
   "riskScore": number
-}`
-          }
-        ],
+}`;
+
+      const requestData = {
+        model: MODEL,
         max_tokens: 1500,
-        temperature: 0.4
+        messages: [{ role: 'user', content: userPrompt }]
       };
 
-      const response = await this.client.chat.completions.create(requestData);
+      const response = await this.client.messages.create({
+        ...requestData,
+        system: systemPrompt
+      });
+
       const duration = Date.now() - startTime;
-      
-      // Track successful API call
       this.trackApiCall('generateRecommendations', requestData, response, duration);
-      
-      // Clean the response content to extract JSON
-      let responseContent = response.choices[0].message.content.trim();
+
+      let responseContent = response.content[0].text.trim();
       console.log('🔍 Raw Recommendations Response:', responseContent);
-      
-      // Remove markdown code blocks if present
+
       if (responseContent.startsWith('```json')) {
         responseContent = responseContent.replace(/^```json\s*/, '').replace(/```\s*$/, '');
       } else if (responseContent.startsWith('```')) {
         responseContent = responseContent.replace(/^```\s*/, '').replace(/```\s*$/, '');
       }
-      
-      // Try to parse JSON
+
       let recommendations;
       try {
         recommendations = JSON.parse(responseContent);
       } catch (parseError) {
         console.error('❌ JSON Parse Error:', parseError);
-        console.error('🔍 Content to parse:', responseContent);
-        
-        // Try to extract JSON from the response using regex
         const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             recommendations = JSON.parse(jsonMatch[0]);
             console.log('✅ Successfully extracted JSON using regex');
-          } catch (regexParseError) {
+          } catch {
             throw new Error(`Failed to parse recommendations response as JSON. Raw response: ${responseContent.substring(0, 200)}...`);
           }
         } else {
           throw new Error(`Recommendations response does not contain valid JSON. Raw response: ${responseContent.substring(0, 200)}...`);
         }
       }
-      
+
       console.log('✅ Recommendations generated successfully');
       console.log('📊 Recommendations Summary:', {
         priority: recommendations.priority,
         recommendationCount: recommendations.recommendations?.length || 0,
         duration: `${duration}ms`
       });
-      
+
       return recommendations;
-      
+
     } catch (error) {
       const duration = Date.now() - startTime;
-      
-      // Track failed API call
+
       this.trackFailedApiCall('generateRecommendations', {
-        model: "gpt-3.5-turbo",
+        model: MODEL,
         max_tokens: 1500,
         messages: [{ content: `Vulnerabilities data (${vulnerabilities?.length || 0} items)` }]
       }, error, duration);
-      
+
       console.error('❌ Recommendations generation failed:', error);
       throw new Error(`Recommendations generation failed: ${error.message}`);
     }
   }
 
-  // Get API usage statistics
   getApiStats() {
     const totalCalls = this.apiCallHistory.length;
     const successfulCalls = this.apiCallHistory.filter(call => call.success).length;
@@ -364,8 +333,8 @@ Return ONLY this JSON structure (no markdown, no code blocks):
     const totalTokensUsed = this.apiCallHistory
       .filter(call => call.success)
       .reduce((acc, call) => acc + (call.responseData.tokensUsed || 0), 0);
-    const averageResponseTime = totalCalls > 0 
-      ? this.apiCallHistory.reduce((acc, call) => acc + call.duration, 0) / totalCalls 
+    const averageResponseTime = totalCalls > 0
+      ? this.apiCallHistory.reduce((acc, call) => acc + call.duration, 0) / totalCalls
       : 0;
 
     return {
@@ -380,14 +349,10 @@ Return ONLY this JSON structure (no markdown, no code blocks):
     };
   }
 
-  // Get recent API call history
   getRecentApiCalls(limit = 10) {
-    return this.apiCallHistory
-      .slice(-limit)
-      .reverse(); // Most recent first
+    return this.apiCallHistory.slice(-limit).reverse();
   }
 
-  // Stream a cybersecurity chat response with optional scan context
   async streamChatAnalysis(conversationHistory, scanContext = null) {
     const contextBlock = scanContext
       ? `\n\nCurrent scan context loaded:
@@ -417,22 +382,17 @@ When answering:
 - Prioritise findings by severity and exploitability
 - Provide concrete commands or config changes where relevant${contextBlock}`;
 
-    const stream = await this.client.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...conversationHistory
-      ],
+    const stream = await this.client.messages.create({
+      model: MODEL,
+      system: systemPrompt,
+      messages: conversationHistory,
       stream: true,
-      max_tokens: 1500,
-      temperature: 0.7
+      max_tokens: 1500
     });
 
     return stream;
   }
 }
 
-// Create singleton instance
-const openaiService = new OpenAIService();
-
-export default openaiService;
+const claudeService = new ClaudeService();
+export default claudeService;
